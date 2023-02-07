@@ -1,0 +1,78 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+boxoffice = read.csv("C:\\Documents and Settings/migbo/Documents/Git Clones/DS6373/BoxOfficeMojo.csv")
+boxoffice$Cumulative.Gross <-  gsub('[^[:alnum:]]','',boxoffice$Cumulative.Gross)
+boxoffice$Cumulative.Gross <-  as.numeric(boxoffice$Cumulative.Gross)/1000000 #in
+boxoffice.ts <- ts(boxoffice$Cumulative.Gross,start = c(2010,1),frequency = 12)
+boxoffice.ts <- boxoffice.ts[1:120]
+```
+
+```{r}
+library(tswge)
+```
+```{r}
+plotts.sample.wge(boxoffice.ts)
+```
+
+```{r}
+x <- gen.aruma.wge(n=500,s=7)
+fac1 <- tswge::mult.wge(fac1 = c(0,0,0,0,0,0,7))
+factor.wge(phi = c(0,0,0,0,0,0,1))
+
+factor.wge(phi=c(rep(0,6),1))
+```
+```{r}
+mod1_th <- mult.wge(fac1 = -.3, fac2 = c(.6,-.8))
+mod3_ph <- mult.wge(c(.1,.99,-.013,-.2078,-.0888,-.00864),1,1,c(rep(0,11),1))
+```
+```{r}
+##model 1
+factor.wge(phi = c(rep(0,3),1),theta = mod1_th$model.coef)
+x1 <- gen.aruma.wge(100,s=4,theta = mod1_th$model.coef)
+plotts.sample.wge(x1)
+```
+```{r}
+###model 2
+factor.wge(phi=-.3,theta = c(.6,-.8))
+x2 <- gen.aruma.wge(n=100,phi = -.3,theta = c(.6,-.8))
+plotts.sample.wge(x2)
+```
+```{r}
+### model 3
+factor.wge(phi = mod3_ph$model.coef,theta =  c(.6,-.8))
+```
+
+```{r}
+library(tidyquant)
+
+ford_prices <- tq_get("FORD",get="stock.prices",from="2022-01-01",to="2022-12-31")
+ford_close <- ford_prices$close
+```
+
+
+```{r}
+plotts.wge(ford_close,main = "FORD Stock Price 2022")
+```
+```{r}
+dif1 <- artrans.wge(ford_close,phi.tr = 1)
+aic5.wge(dif1)
+```
+
+```{r}
+box12 <- gen.aruma.wge(n=120,s=12)
+plotts.sample.wge(box12)
+
+dif12 <- artrans.wge(boxoffice.ts,phi.tr = c(rep(0,11),1))
+```
+
+```{r}
+plotts.sample.wge(dif12)
+```
+```{r}
+aic5.wge(dif12)
+```
+
