@@ -1,0 +1,35 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tswge)
+library(ggplot2)
+```
+
+```{r}
+boxoffice = read.csv("BoxOfficeMojo.csv")
+boxoffice$Cumulative.Gross <-  gsub('[^[:alnum:]]','',boxoffice$Cumulative.Gross)
+boxoffice$Cumulative.Gross <-  as.numeric(boxoffice$Cumulative.Gross)/1000000 #in Millions
+boxoffice.ts <- ts(boxoffice$Cumulative.Gross,start = c(2010,1),frequency = 12)
+boxoffice.ts
+```
+```{r}
+tswge::parzen.wge(boxoffice.ts[1:120],trunc = 30)
+abline(v=1/6,lty=2)
+abline(v=1/12, lty=2)
+abline(v=1/4, lty=2)
+```
+
+```{r}
+parzen.wge(boxoffice.ts[1:120],trunc = 30)
+abline(v=1/6)
+abline(v=1/12)
+abline(v=1/4)
+```
+```{r}
+plotts.wge(boxoffice.ts[1:120])
+```
+

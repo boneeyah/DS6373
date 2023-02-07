@@ -1,0 +1,40 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tswge)
+```
+
+```{r}
+plotts.true.wge(n=100,phi=c(-.5,-.6))
+```
+
+```{r}
+walmart = read.csv(file = "C:/Documents and Settings/migbo/Downloads/walmart (4).csv")
+df = walmart[walmart$store==9 & walmart$item==50,]
+```
+```{r}
+plotts.wge(df$sales)
+plotts.sample.wge(df$sales)
+```
+```{r}
+#model 1
+factor.wge(phi = .967)
+plotts.true.wge(phi = .967)
+```
+```{r}
+#model 2
+factor.wge(phi = c(1.452,-.453,-.294,.175,.237,-.154))
+plotts.true.wge(phi = c(1.452,-.453,-.294,.175,.237,-.154))
+```
+```{r}
+factor.wge(phi = c(1.445,-.411,-.038,.170,.362,-.245,-.177,.213))
+plotts.true.wge(phi = c(1.445,-.411,-.038,.170,.362,-.245,-.177,.213))
+```
+```{r}
+factor.wge(phi = c(0.1516, 0.0769, 0.0016, -0.0095, 0.0542, 0.1117, 0.5683))
+plotts.true.wge(phi = c(0.1516, 0.0769, 0.0016, -0.0095, 0.0542, 0.1117, 0.5683))
+```
+
