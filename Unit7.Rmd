@@ -1,0 +1,46 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+swadelay = read.csv("C:\\Documents and Settings/migbo/Downloads/swadelay.csv")
+library(tswge)
+```
+
+```{r}
+ts <- swadelay$arr_delay
+ts_30 <- ts[148:177]
+```
+
+```{r}
+ts_fore12 <- fore.arma.wge(ts,phi = c(.44,.02,-.12,.08,0,.02,.06,-.09,.06,.07,.02,.37),n.ahead = 30,lastn = TRUE,limits = FALSE)
+```
+```{r}
+ts_fore12_1 <- fore.arma.wge(ts,phi=c(.34,.07,-.11,.07,.01,.02,.06,-.09,.05,.07,.02,.39),theta = -.12,n.ahead = 30,lastn = TRUE,limits = FALSE)
+```
+```{r}
+mean((ts_fore12$f-ts_30)^2)
+mean((ts_fore12_1$f-ts_30)^2)
+```
+```{r}
+lynx_fore <- fore.arma.wge(llynx,phi=c(1.3,-.7,.1,-.2),n.ahead = 12,lastn = TRUE,limits = FALSE)
+mean((lynx_fore$f-llynx[103:114])^2)
+```
+
+
+```{r}
+woodward <- fore.aruma.wge(airlog,phi=c(-.36,-.05,-.14,-.11,.04,.09,-.02,.02,.17,.03,-1,-.38),d = 1,s=12,n.ahead = 36,lastn = TRUE,plot = TRUE,limits = FALSE)
+
+mean((woodward$f-airlog[109:144])^2)
+```
+```{r}
+amzn <- read.csv("C:\\Documents and Settings/migbo/Downloads/amazon.csv")
+```
+
+```{r}
+amazn_ts <- amzn$Adj.Close
+
+fore.sigplusnoise.wge(amazn_ts,linear = TRUE,n.ahead = 30,lastn = FALSE,limits = FALSE)
+```
+
