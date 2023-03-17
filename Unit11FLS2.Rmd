@@ -1,0 +1,40 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tswge)
+```
+
+```{r}
+accu <- read.csv("https://raw.githubusercontent.com/boneeyah/DS6373/main/accuspike%20(2).csv")
+x <- accu$Active.Users[0:183]
+```
+
+```{r}
+plotts.wge(x)
+plotts.sample.wge(x)
+```
+The plots above do not show evidence of seasonality. The ACF plot does not show much evidence of non-stationary behavior.
+But will look at the factor table to see how strong root with frequency of 0 is
+```{r}
+est.arma.wge(x,p=13)
+```
+As expected from the specntral density plot, there appears to be a root at 0, but it is not dominant. It's associated absoulte reciprocal is .93, which means it is not particularly close to the unit circle, meaning the frequency of 0 is not associated with non-stationary behavior.
+We will proceed with a stationary model
+
+```{r}
+x <- artrans.wge(x,phi.tr = c(rep(0,6),1))
+aic5.wge(x,p=0:14,q=0:2,type = 'aic')
+```
+Will go with the 14,0 model since this is daily data, biweekly patterns seem more plausible than 10 or 12 day patterns (though they are also possible).
+
+```{r}
+est14 <- est.arma.wge(x,p=14,q=1)
+```
+
+```{r}
+fore.arima.wge(accu$Active.Users[0:183],phi=est14$phi,theta = est14$theta,n.ahead = 14,lastn = TRUE,s=7)
+```
+

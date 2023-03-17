@@ -1,0 +1,59 @@
+---
+title: "FLS 11"
+output: html_notebook
+---
+1. Plot the latest yearly sunspot data
+```{r}
+sun_spots <- read.csv("https://raw.githubusercontent.com/boneeyah/DS6373/main/SN_y_tot_V2.0.csv",sep = ";",header = FALSE)
+x <- sun_spots$V2
+plotts.wge(x)
+```
+2. Comment on its stationarity:
+We see some evidence against stationarity. More specifically, the assumption of the mean sunsposts being independent of time appears like it might be violated.
+
+Based on the realization, the acf plot and the spectral density plot, there is not strong evidence of wandering. There is a peak at frequency of 0, but it is not the dominant behavior, so it does not appear to correspond to a non-stationary root on the unit circle.
+```{r}
+plotts.sample.wge(x)
+```
+3. Use aic5.wge to estimate the p and the q of the model.
+
+```{r}
+aic5.wge(x,p=0:14, q=0:8,type = 'aic')
+
+aic5.wge(x,p=0:14,q=0:8,type = 'bic')
+```
+4. Fit the model using your model identificiation (p and q)
+```{r}
+arma3.4 <- est.arma.wge(x,p=3,q=4)
+arma12.3 <- est.arma.wge(x,p=12,q=3)
+
+fore3.4 <- fore.arma.wge(x,phi = arma3.4$phi,theta = arma3.4$theta,n.ahead = 15,lastn = TRUE,limits = FALSE)
+fore12.3 <- fore.arma.wge(x,phi = arma12.3$phi,theta = arma12.3$theta,n.ahead = 15,lastn = TRUE,limits = FALSE)
+```
+5. Use this model to generate an ASE from forecasting the last 15 years of sunspot data.
+```{r}
+ASE <- mean((x[309:323] - fore12.3$f)^2)
+
+roll.win.rmse.wge(x,horizon = 15,phi = arma12.3$phi,theta = arma12.3$theta)
+```
+6. Now fit a seasonal model to the data.
+```{r}
+est.arma.wge(x,p=16)
+factor.wge(phi = c(rep(0,10),1))
+
+#we can see that it matches a seasonality of 11 fairly well
+d11 <- artrans.wge(x,phi.tr = c(rep(0,10),1))
+#acfs and realization plot do not look like white noise, so we will still try to find and fit an ar model
+parzen.wge(d11)
+
+aic5.wge(d11,p=0:12,q=0:8,type = 'aic')
+d11.11.3 <- est.arma.wge(d11,p=11,q=3)
+plotts.wge(d11.11.3$res)
+acf(d11.11.3$res)
+
+fore11.11.3 <- fore.arima.wge(x,phi = d11.11.3$phi,theta = d11.11.3$theta,s=11,n.ahead = 15,lastn = TRUE,limits = FALSE)
+
+ASE2 <- mean((fore11.11.3$f - x[309:323])^2)
+roll.win.rmse.wge(x,horizon = 15,s=11,phi = d11.11.3$phi,theta = d11.11.3$theta)
+```
+
