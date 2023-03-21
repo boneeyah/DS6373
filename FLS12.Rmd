@@ -97,11 +97,6 @@ cat('\nVAR AR(2) ASE = ',var_ase)
 cat('\nVAR AR(9) ASE =', var1_ase)
 ```
 ```{r}
-busi <- read.csv("https://raw.githubusercontent.com/boneeyah/DS6373/main/businesssales.csv")
-
-
-```
-```{r}
 business <- read.csv("https://raw.githubusercontent.com/boneeyah/DS6373/main/businesssales.csv")
 ```
 
@@ -139,8 +134,8 @@ VAR3_fit <- VAR(business[0:95,2:5],p=3,type = "both")
 
 ```{r}
 mlr_pred <- predict(fit,newxreg = data.frame(busi$ad_tv1[96:100],busi$ad_online1[96:100],busi$discount4[96:100]))
-var2_pred <- predict(VAR2_fit,n.ahead = 5)
-var3_pred  <- predict(VAR3_fit,n.ahead = 5)
+var2_pred <- predict(VAR2_fit,n.ahead = 25)
+var3_pred  <- predict(VAR3_fit,n.ahead = 25)
 ```
 ```{r}
 x <- 96:100
@@ -148,13 +143,13 @@ plot(1:100,busi$sales,type='l')
 points(x,mlr_pred$pred,col='red',type = 'o')
 ```
 ```{r}
-plot(1:100,busi$sales,type='l')
-points(x,var2_pred$fcst$sales[,1],col='blue',type = 'o')
+plot(1:100,busi$sales,type='l',xlim=c(1,120))
+points(96:120,var2_pred$fcst$sales[,1],col='blue',type = 'o')
 ```
 
 ```{r}
-plot(1:100,busi$sales,type='l')
-points(x,var3_pred$fcst$sales[,1],col='pink',type='o')
+plot(1:100,busi$sales,type='l',xlim=c(0,120))
+points(96:120,var3_pred$fcst$sales[,1],col='pink',type='o')
 ```
 
 ```{r}
