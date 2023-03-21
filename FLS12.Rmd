@@ -63,7 +63,7 @@ ljung.wge(res_fit1$residuals,p=4,K=48)
 ```
 Proceeding with the VAR modeling 
 ```{r}
-X <- la_mort[,2:4]
+X <- la_mort[1:456,2:4]
 VARselect(X,lag.max = 20,type = "const") #chooses lag of 9 for AIC and 2 for BIC
 ```
 ```{r}
@@ -134,7 +134,7 @@ ljung.wge(fit$residuals[5:95],K=48)
 ```{r}
 VARselect(business[,2:5],lag.max = 10,type = "const")
 VAR2_fit <- VAR(business[0:95,2:5],p=2,type = "both")
-VAR3_fit <- VAR(business[0:95,2:5],p=3,,type = "both")
+VAR3_fit <- VAR(business[0:95,2:5],p=3,type = "both")
 ```
 
 ```{r}
