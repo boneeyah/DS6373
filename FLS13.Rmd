@@ -1,0 +1,166 @@
+---
+title: "FLS13"
+output: html_notebook
+---
+
+
+1. Model the melanoma rate given the sunspot data as we did in the last unit but this time us an MLP.  Calculate the ASE, and compare your MLP model to the VAR model you estimated in the last unit. 
+
+2. Model the cardiac mortalities from the Schumway pollution data (LA_Cmort_Study.csv from the last unit) given the temperature and particle data with a MLP model, and provide 52-step-ahead forecasts (1 year). Calculate the ASE, compare the performance with the VAR model from the last unit, and add your analysis to a slide in your Unit 13 For Live Session PowerPoint deck.
+
+3. Model your time series (the one in the Google Doc) with a MLP, and compare it with ARMA/ARIMA models you have fit to it in the past.
+
+Provide a slide or slides for your Key Takeaways for Unit 13!
+
+Provide a slide or slides for any questions or comments you have from this section. This could also include topics you would like to have specifically addressed in live session! There is no minimum or maximum here.
+
+#1. Model Melanoma Data
+
+```{r}
+library(tswge)
+library(nnfor)
+library(vars)
+
+melanoma <- c(1.0, 0.9, 0.8, 1.4, 1.2, 1.0, 1.5, 1.9, 1.5, 1.5, 1.5, 1.6, 1.8, 2.8, 2.5, 2.5, 2.4, 2.1, 1.9, 2.4, 2.4, 2.6, 2.6, 4.4, 4.2, 3.8, 3.4, 3.6, 4.1, 3.7, 4.2, 4.1, 4.1, 4.0, 5.2, 5.3, 5.3)
+sunspot <- c(40, 115, 100,  80,  60,  40,  23,  10,  10,  25,  75, 145, 130, 130,  80,  65,  20,  10,   5,  10, 60, 190, 180, 175, 120,  50,  35,  20,  10,  15,  30,  60, 105, 105, 105,  80,  65)
+mel.ts <- ts(melanoma,start = c(1,1936),frequency = 1)
+sun.ts <- ts(sunspot,start = c(1,1936),frequency = 1)
+
+mel.train <- head(mel.ts,-5)
+sun.train <- head(sun.ts,-5)
+mel.test <- tail(mel.ts,5)
+sun.test <- tail(sun.ts,5)
+```
+```{r}
+#sanity check
+plotts.sample.wge(mel.train)
+# at least one difference (d1) by the plot
+```
+
+
+
+```{r}
+set.seed(326)
+### use univriate MLP to forecast sun
+sun.fit <- mlp(sun.train, allow.det.season = FALSE)
+sun.for <- forecast(sun.fit,h = 5)
+```
+
+```{r}
+set.seed(326)
+### fit multivariate model using forecast
+df.sun1 <- data.frame(sun = sun.train)
+mod1 <- mlp(mel.train,xreg = df.sun1,allow.det.season = FALSE,hd.auto.type = 'valid')
+x.reg <- data.frame(ts(c(sun.train,sun.for$mean),start = 1936))
+```
+
+
+```{r}
+mod1
+mel.for <- forecast(mod1,xreg = x.reg,h = 5)
+```
+
+```{r}
+### calculate ASE
+ASE1 <- mean((mel.test - mel.for$mean)^2)
+ASE1
+```
+
+```{r}
+X <- cbind(mel.train,sun.train)
+VARselect(X,lag.max = 6,type = 'const',season = NULL,exogen = NULL)
+var.fit <- VAR(X,p = 4,type = 'const')
+var.pred <- predict(var.fit,n.ahead = 5)
+ASE2 <- mean((mel.test - var.pred$fcst$mel.train[,1])^2)
+ASE2
+```
+```{r}
+la_mort <- read.csv("https://raw.githubusercontent.com/boneeyah/DS6373/main/la_cmort_study%20(2).csv")
+la.temp.ts <- ts(la_mort$temp,frequency = 52)
+la.part.ts <- ts(la_mort$part,frequency = 52)
+la.cmort.ts <- ts(la_mort$cmort,frequency = 52)
+
+temp.train <- head(la.temp.ts,-52)
+temp.test <- tail(la.temp.ts,52)
+part.train <- head(la.part.ts,-52)
+part.test <- tail(la.temp.ts,52)
+cmort.train <- head(la.cmort.ts,-52)
+cmort.test <- tail(la.cmort.ts,52)
+```
+
+```{r}
+#as a sanity check
+plotts.sample.wge(cmort.train)
+# there is clearly at least a d1
+```
+```{r}
+set.seed(326)
+#univariate forecasts for regressors
+temp.fit <- mlp(temp.train, allow.det.season = FALSE)
+part.fit <- mlp(part.train, allow.det.season = FALSE)
+temp.for <- forecast(temp.fit,h=52)
+part.for <- forecast(part.fit,h=52)
+```
+
+
+```{r}
+set.seed(326)
+###
+df.reg <- data.frame(temp = temp.train, part = part.train)
+mod2 <- mlp(cmort.train,xreg = df.reg,allow.det.season = FALSE,hd.auto.type = 'valid')
+```
+
+```{r}
+mod2
+temp.reg <- ts(c(temp.train,temp.for$mean),frequency = 52)
+part.reg <- ts(c(part.train,part.for$mean),frequency = 52)
+df.reg2 <- data.frame(temp.reg,part.reg)
+
+cmort.for <- forecast(mod2,xreg = df.reg2,h=52)
+```
+```{r}
+ASE3 <- mean((cmort.test - cmort.for$mean)^2)
+ASE3
+```
+```{r}
+### var
+X <- data.frame(cmort = cmort.train, temp = temp.train, part = part.train)
+VARselect(X,type = 'both')
+cmort.fit <- VAR(X,p=9,type = 'both')
+```
+
+```{r}
+cmort.pred <- predict(cmort.fit,n.ahead = 52)
+ASE4 <- mean((cmort.test - cmort.pred$fcst$cmort[,1])^2)
+ASE4
+```
+```{r}
+#load my boxoffice data and place into a ts object
+
+boxoffice = read.csv("https://raw.githubusercontent.com/boneeyah/DS6373/main/BoxOfficeMojo.csv")
+boxoffice$Cumulative.Gross <-  gsub('[^[:alnum:]]','',boxoffice$Cumulative.Gross)
+boxoffice$Cumulative.Gross <-  as.numeric(boxoffice$Cumulative.Gross)/1000000 #in Millions
+boxoffice <- boxoffice[1:120,]
+boxoffice.ts <- ts(boxoffice$Cumulative.Gross,start = c(2010,1),frequency = 12)
+boxoffice.ts
+```
+```{r}
+plotts.sample.wge(boxoffice.ts)
+```
+```{r}
+box.train <- head(boxoffice.ts,-12)
+box.test <- tail(boxoffice.ts,12)
+```
+
+
+```{r}
+set.seed(326)
+box.mod <- mlp(box.train,allow.det.season = TRUE)
+box.mod
+```
+```{r}
+box.fore <- forecast(box.mod,h=12)
+ASE5 <- mean((box.test - box.fore$mean)^2)
+ASE5
+```
+
